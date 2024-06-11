@@ -1,9 +1,6 @@
 package merge.intervals;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 public class EmployeeFreeTime {
 
@@ -21,22 +18,13 @@ public class EmployeeFreeTime {
     public static List<Interval> employeeFreeTime(List<List<Interval>> schedule) {
 
         List<Interval> ans = new ArrayList<>();
-        int size = 0;
-        for (int i = 0; i < schedule.size(); i++) {
-            size += schedule.get(i).size();
-        }
 
-        Interval[] sorted = new Interval[size];
-        int cnt = 0;
 
-        for (int i = 0; i < schedule.size(); i++) {
-            for (int j = 0; j < schedule.get(i).size(); j++) {
-                int start = schedule.get(i).get(j).start;
-                int end = schedule.get(i).get(j).end;
-                sorted[cnt] = new Interval(start, end);
-                cnt++;
-            }
-        }
+        List<Interval> sortedList = schedule.stream().flatMap(Collection::stream)
+                .sorted(Comparator.comparingInt(item -> item.start))
+                        .toList();
+
+        Interval[] sorted = sortedList.toArray(new Interval[0]);
 
         Arrays.sort(sorted, Comparator.comparingInt(o -> o.start));
 
