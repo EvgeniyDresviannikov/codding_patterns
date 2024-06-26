@@ -1,6 +1,5 @@
 package modified.binary.search;
 
-import java.util.List;
 
 public class SearchInRotatedSortedArray2 {
 
