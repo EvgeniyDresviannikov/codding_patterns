@@ -18,7 +18,7 @@ public class FlattenBinaryTreeToLinkedList {
         TreeNode<Integer> head = flattenTree(root);
 
         while (head != null) {
-            System.out.println(head.val);
+            System.out.println(head.data);
             head = head.right;
         }
     }
@@ -52,12 +52,12 @@ public class FlattenBinaryTreeToLinkedList {
 
 
 class TreeNode<T> {
-    T val;
+    T data;
     TreeNode<T> left;
     TreeNode<T> right;
 
-    TreeNode(T val) {
-        this.val = val;
+    TreeNode(T data) {
+        this.data = data;
         this.left = null;
         this.right = null;
     }
