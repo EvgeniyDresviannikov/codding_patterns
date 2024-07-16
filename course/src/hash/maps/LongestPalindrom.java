@@ -1,7 +1,6 @@
 package hash.maps;
 
 import java.util.HashMap;
-import java.util.stream.Collectors;
 
 public class LongestPalindrom {
 
@@ -18,13 +17,7 @@ public class LongestPalindrom {
             freq.put(c, freq.getOrDefault(c, 0) + 1);
         }
 
-        int res = 0;
-
-        for (int i = 0; i < freq.values().size(); i++) {
-
-        }
-
-        res = freq.values().stream().filter(val -> val > 1).map(val -> val % 2 == 0 ? val : val - 1).mapToInt(Integer::intValue).sum();
+        int res = freq.values().stream().filter(val -> val > 1).map(val -> val % 2 == 0 ? val : val - 1).mapToInt(Integer::intValue).sum();
 
         return res < s.length() ? res+1 : res;
     }
