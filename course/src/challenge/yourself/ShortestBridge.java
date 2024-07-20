@@ -1,16 +1,10 @@
 package challenge.yourself;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ShortestBridge {
-    static int[] parent;
-    static int[] rank;
-    static int n;
-    static  int m;
-    static int minDistance = Integer.MAX_VALUE;
     static int[][] board;
+    static final int[][] DIRECTIONS = new int[][] { {1, 0}, {-1, 0}, {0, 1}, {0, -1} };
 
     public static void main(String[] args) {
         System.out.println(shortestBridge(new int[][]{
@@ -21,133 +15,88 @@ public class ShortestBridge {
     }
 
     public static int shortestBridge(int[][] grid){
-
+        int len = grid.length;
         board = grid;
 
-        n = grid.length;
-        m = grid[0].length;
-
-        parent = new int[n*m];
-        rank = new int[n*m];
-
-        //build parent and rank
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < m; j++) {
-                int idx = getIndexInParent(i, j);
-                if (board[i][j] == 1) {
-                    parent[idx] = idx;
-                    rank[idx] = 1;
-                } else {
-                    parent[idx] = -1;
-                }
-
-            }
-        }
-
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < m; j++) {
+        // find the island
+        boolean finished = false;
+        Set<Map.Entry<Integer, Integer>> visited = new HashSet<>();
+        for (int i = 0; i < len; i++) {
+            if (finished) break;
+            for (int j = 0; j < len; j++) {
                 if (grid[i][j] == 1) {
-                    int currentIdx = getIndexInParent(i, j);
-                    // right cell
-                    if (j+1 < m && grid[i][j+1] == 1) {
-                        union(currentIdx, currentIdx+1);
-                    }
-                    if (i+1 < n && grid[i+1][j] == 1) {
-                        union(currentIdx, getIndexInParent(i+1, j));
-                    }
-                }
-            }
-        }
-
-        // define two islands (setIds)
-        int oneSet = 0;
-        int secondSet = 0;
-        for (int i = 0; i < parent.length; i++) {
-            if (parent[i] > 0) {
-                if (oneSet == 0) {
-                    oneSet = parent[i];
-                } else if (parent[i] != oneSet) {
-                    secondSet = parent[i];
+                    dfs(i, j, visited);
+                    finished = true;
                     break;
                 }
             }
         }
 
+        Queue<Map.Entry<Integer, Integer>> queue = new ArrayDeque<>(visited);
+        return bfs(queue, visited);
 
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < m; j++) {
-                if (grid[i][j] == 1 && parent[getIndexInParent(i, j)] == oneSet) {
-                    if (j+1 < m && grid[i][j+1] == 0) {
-                        dfs(i, j+1, new HashSet<>(), 0, secondSet);
-                    }
-                    if (j-1 > -1 && grid[i][j-1] == 0) {
-                        dfs(i, j-1, new HashSet<>(), 0, secondSet);
-                    }
-                    if (i+1 < n && grid[i+1][j] == 0) {
-                        dfs(i+1, j, new HashSet<>(), 0, secondSet);
-                    }
-                    if (i-1 > -1 && grid[i-1][j] == 0) {
-                        dfs(i-1, j, new HashSet<>(), 0, secondSet);
-                    }
-                }
-            }
-        }
-
-        return minDistance;
     }
 
-    static void dfs(int i, int j, Set<Map.Entry<Integer, Integer>> visited, int counter, int island) {
-        if (i > n-1 || j > m-1 || i < 0 || j < 0) {
-            return;
+    private static boolean isInvalid(int i, int j, Set<Map.Entry<Integer, Integer>> visited) {
+        if (i < 0 || j < 0 || i > board.length-1 || j > board.length-1 || visited.contains(Map.entry(i, j)) || board[i][j] == 0) {
+            return true;
         }
+        return false;
+    }
 
-        if (visited.contains(Map.entry(i, j)) || (board[i][j] == 1 && parent[getIndexInParent(i, j)] != island)) {
-            return;
+    private static boolean isWater(int i, int j, Set<Map.Entry<Integer, Integer>> visited) {
+        if (i >= 0 && j >= 0 && i < board.length && j < board.length && !visited.contains(Map.entry(i, j)) && board[i][j] == 0) {
+            return true;
         }
+        return false;
+    }
 
-        if (board[i][j] == 1 && parent[getIndexInParent(i, j)] == island) {
-            minDistance = Math.min(minDistance, counter);
-            return;
+    private static boolean isIsland(int i, int j, Set<Map.Entry<Integer, Integer>> visited) {
+        if (i >= 0 && j >= 0 && i < board.length && j < board.length && !visited.contains(Map.entry(i, j)) && board[i][j] == 1) {
+            return true;
         }
+        return false;
+    }
+
+    private static void dfs(int i, int j, Set<Map.Entry<Integer, Integer>> visited) {
+        if (isInvalid(i, j, visited)) return;
 
         visited.add(Map.entry(i, j));
 
-        dfs(i-1, j, visited, counter+1, island);
-        dfs(i+1, j, visited, counter+1, island);
-        dfs(i, j-1, visited, counter+1, island);
-        dfs(i, j+1, visited, counter+1, island);
-
-        visited.remove(Map.entry(i, j));
-
-    }
-
-    static int getIndexInParent(int i, int j) {
-        return n*i + j;
-    }
-
-    static void union(int first, int second) {
-        int p1 = findSet(first);
-        int p2 = findSet(second);
-        if (p1 == p2) {
-            return;
-        }
-
-        if (rank[p1] > rank[p2]) {
-            parent[p2] = p1;
-            rank[p1] += rank[p2];
-        } else {
-            parent[p1] = p2;
-            rank[p2] += rank[p1];
+        for (int k = 0; k < DIRECTIONS.length; k++) {
+            int r = i + DIRECTIONS[k][0];
+            int c = j + DIRECTIONS[k][1];
+            dfs(r, c, visited);
         }
     }
 
-    static int findSet(int val) {
+    private static int bfs(Queue<Map.Entry<Integer, Integer>> queue, Set<Map.Entry<Integer, Integer>> visited) {
+        Queue<Map.Entry<Integer, Integer>> next = new ArrayDeque<>();
+        int res = 0;
+        while (!queue.isEmpty()) {
+            while (!queue.isEmpty()) {
+                Map.Entry<Integer, Integer> pop = queue.poll();
+                for (int k = 0; k < DIRECTIONS.length; k++) {
+                    int r = pop.getKey() + DIRECTIONS[k][0];
+                    int c = pop.getValue() + DIRECTIONS[k][1];
+                    if (isWater(r, c, visited)) {
+                        next.add(Map.entry(r, c));
+                        visited.add(Map.entry(r, c));
+                    } else if (isIsland(r, c, visited)) {
+                        return res;
+                    }
+                }
+            }
 
-        if (val != parent[val]) {
-            parent[val] = findSet(parent[val]);
+            while (!next.isEmpty()) {
+                queue.add(next.poll());
+            }
+
+            res++;
+
+
         }
-        return parent[val];
+        return -1;
     }
-
 
 }
